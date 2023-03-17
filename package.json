@@ -1,0 +1,23 @@
+{
+  "name": "did-nostr",
+  "version": "0.0.1",
+  "description": "did nostr",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/melvincarvalho/did-nostr.git"
+  },
+  "keywords": [
+    "nostr",
+    "did"
+  ],
+  "author": "Melvin Carvalho",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/melvincarvalho/did-nostr/issues"
+  },
+  "homepage": "https://github.com/melvincarvalho/did-nostr#readme"
+}
