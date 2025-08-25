@@ -304,18 +304,50 @@
         </section>
         
         <section>
-          <h4>Enhanced Resolution with Relay Queries</h4>
+          <h4>Enhanced Resolution</h4>
           <p>
-            Optionally, resolvers MAY query known Nostr relays to enhance the DID document with additional metadata and service endpoints.
+            Optionally, resolvers MAY query external sources to enhance the DID document with additional metadata and service endpoints.
           </p>
           <p>
             The enhanced resolution process adds:
           </p>
           <ol>
-            <li>Query known Nostr relays for metadata about the public key</li>
+            <li><strong>HTTP Resolution</strong> - Check for profile information at <code>.well-known/did/nostr/&lt;pubkey&gt;.json</code></li>
+            <li><strong>Relay Queries</strong> - Query known Nostr relays for metadata about the public key</li>
             <li>Include discovered relay endpoints in the service section of the DID Document</li>
             <li>Add any additional metadata found in kind 0 events</li>
           </ol>
+          
+          <section>
+            <h5>HTTP Resolution</h5>
+            <p>
+              For web integration and faster resolution, domains can host DID profile information at:
+            </p>
+            <pre><code>https://example.com/.well-known/did/nostr/&lt;pubkey&gt;.json</code></pre>
+            <p>
+              Where <code>&lt;pubkey&gt;</code> is the 64-character lowercase hex public key.
+            </p>
+            <p>
+              The JSON file should contain service endpoint information:
+            </p>
+            <pre class="example">{
+  "service": [
+    {
+      "id": "#relay1",
+      "type": "Relay", 
+      "serviceEndpoint": "wss://relay.example.com"
+    },
+    {
+      "id": "#website",
+      "type": ["Website", "LinkedDomains"],
+      "serviceEndpoint": "https://example.com"
+    }
+  ]
+}</pre>
+            <p>
+              This provides standard HTTP caching, CDN support, and web-native hosting practices.
+            </p>
+          </section>
           <p>
             The resolved DID Document will follow the template shown in the "Example DID" section above.
           </p>
