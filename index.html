@@ -278,8 +278,10 @@
         </p>
         <p>
           <strong>Note:</strong> The <code>timestamp</code> field represents when the DID resolver cached this profile data, 
-          not when the profile was originally created by the user. This distinction is important for caching logic - 
-          the field indicates data freshness rather than profile age.
+          not when the profile was originally created by the user. For Nostr developers: this is different from the 
+          <code>created_at</code> field in Nostr events - while <code>event.created_at</code> indicates when the user 
+          originally published their profile, <code>timestamp</code> indicates when this DID document cached that data. 
+          This distinction is important for caching logic.
         </p>
         <p>
           <strong>Note:</strong> While DID Core generally recommends against including personally identifiable information, 
