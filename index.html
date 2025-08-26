@@ -277,6 +277,11 @@
           allowing clients to determine data freshness and implement intelligent caching strategies.
         </p>
         <p>
+          <strong>Note:</strong> The <code>timestamp</code> field represents when the DID resolver cached this profile data, 
+          not when the profile was originally created by the user. This distinction is important for caching logic - 
+          the field indicates data freshness rather than profile age.
+        </p>
+        <p>
           <strong>Note:</strong> While DID Core generally recommends against including personally identifiable information, 
           social networking represents a specific use case where users explicitly publish profile information for 
           discovery. This field is optional and should only contain information the user has chosen to make public.
