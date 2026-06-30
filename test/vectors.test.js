@@ -1,9 +1,9 @@
 // Conformance gate against the did:nostr 0.0.12 test vectors (nostrcg/did-nostr
 // #101). Covers the fully-deterministic layers: key transformation, decoding,
-// and the error taxonomy. Document-generation vectors are not yet gated here
-// pending the authentication/assertionMethod reference-format question (the
-// vectors use absolute DID URLs; the spec examples + this resolver use relative
-// refs) — see README / tracking issue.
+// and the error taxonomy. The minimal document-generation vector is gated in
+// test/diddoc.test.js (the vectors use relative #key1 refs, per nostrcg/did-nostr
+// #128); enhanced/complete generation needs source events the vectors don't ship,
+// so it is covered there with synthetic inputs.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';

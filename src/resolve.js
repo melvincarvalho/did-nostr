@@ -36,6 +36,7 @@ export function resolveOffline(hex) {
 export async function resolveHttp(hex, { gateways = DEFAULT_GATEWAYS, fetchImpl = globalThis.fetch } = {}) {
   if (!fetchImpl) return null;
   for (const gw of gateways) {
+    if (typeof gw !== 'string' || !gw) continue; // skip invalid gateway entries
     const url = `${gw.replace(/\/$/, '')}/.well-known/did/nostr/${hex}.json`;
     try {
       const res = await fetchImpl(url, { headers: { accept: DID_MIME } });
@@ -74,8 +75,12 @@ export async function resolve(did, opts = {}) {
   }
 
   if (mode === 'relay') {
-    const doc = await resolveRelay(hex, opts);
-    return ok(doc, { mode: 'relay' });
+    try {
+      const doc = await resolveRelay(hex, opts);
+      return ok(doc, { mode: 'relay' });
+    } catch {
+      return err('notFound'); // e.g. no WebSocket available, or all relays failed
+    }
   }
 
   // auto: fast HTTP first, then relay, then offline-minimal as the floor.
