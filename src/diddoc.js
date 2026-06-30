@@ -64,7 +64,8 @@ export function buildDidDocument(pubkey, { profile, follows, relays } = {}) {
         if (Number.isSafeInteger(profile.created_at)) p.created_at = profile.created_at;
         doc.profile = p;
       }
-      if (Array.isArray(c.alsoKnownAs) && c.alsoKnownAs.length) doc.alsoKnownAs = c.alsoKnownAs;
+      const aka = Array.isArray(c.alsoKnownAs) ? c.alsoKnownAs.filter((x) => typeof x === 'string' && x) : [];
+      if (aka.length) doc.alsoKnownAs = aka;
     } catch { /* malformed kind-0 content */ }
   }
 
@@ -85,7 +86,7 @@ export function buildDidDocument(pubkey, { profile, follows, relays } = {}) {
   // kind 10002 -> service (Relay)
   if (Array.isArray(relays?.tags)) {
     const svc = relays.tags
-      .filter((t) => t[0] === 'r' && t[1])
+      .filter((t) => t[0] === 'r' && typeof t[1] === 'string' && t[1])
       .map((t, i) => ({ id: `${did}#relay${i + 1}`, type: 'Relay', serviceEndpoint: t[1] }));
     if (svc.length) doc.service = svc;
   }

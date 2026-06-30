@@ -11,7 +11,6 @@
 // is separate and optional, per spec: resolvers SHOULD validate; the encoder
 // MAY treat presumed-valid input as opaque hex.
 
-const HEX64 = /^[0-9a-f]{64}$/;
 const MULTICODEC = 'e701';       // secp256k1-pub varint
 const PREFIX = `fe70102`;        // f + e701 + 02 (canonical even-parity Multikey)
 
@@ -85,5 +84,3 @@ export function validatePubkey(input) {
   if (!onCurve(x)) fail('InvalidPublicKey', 'x is not the x-coordinate of a curve point');
   return hex;
 }
-
-export { HEX64, P };
