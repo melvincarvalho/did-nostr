@@ -1,0 +1,45 @@
+{
+  "name": "did-nostr",
+  "version": "0.0.2",
+  "description": "did:nostr resolver — offline, HTTP (.well-known) and relay resolution, with a DIF did-resolver driver. Conforms to did:nostr 0.0.12.",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "bin": {
+    "did-nostr": "bin/cli.js"
+  },
+  "files": [
+    "src",
+    "bin"
+  ],
+  "scripts": {
+    "test": "node --test"
+  },
+  "keywords": [
+    "did",
+    "did:nostr",
+    "nostr",
+    "did-resolver",
+    "decentralized-identity",
+    "resolver"
+  ],
+  "peerDependencies": {
+    "did-resolver": "^4.1.0"
+  },
+  "peerDependenciesMeta": {
+    "did-resolver": {
+      "optional": true
+    }
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/melvincarvalho/did-nostr.git"
+  },
+  "homepage": "https://nostrcg.github.io/did-nostr/",
+  "license": "MIT"
+}
