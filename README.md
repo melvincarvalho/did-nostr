@@ -1,148 +1,68 @@
-# did-nostr: Nostr DID Method Specification
+# did-nostr
 
-This repository contains the unofficial draft specification for the Nostr Decentralized Identifier (DID) method.
+A [`did:nostr`](https://nostrcg.github.io/did-nostr/) resolver — **offline**, **HTTP (`.well-known`)**, and **relay** resolution, with a [DIF `did-resolver`](https://github.com/decentralized-identity/did-resolver) driver. Conforms to did:nostr **0.0.12**.
 
-## Overview
+> The spec lives at [nostrcg/did-nostr](https://github.com/nostrcg/did-nostr). This package is the resolver.
 
-The Nostr DID method (`did:nostr`) enables decentralized identifiers on the [Nostr](https://nostr.com/) network. This specification defines how to:
+## Install
 
-- Create a DID based on a Nostr public key
-- Resolve a Nostr DID to its DID Document (with offline-first and HTTP resolution)
-- Include social graph and profile information
-- Use the DID with Nostr relays and HTTP endpoints
-- Security and privacy considerations for this method
-
-## DID Format
-
-Nostr DIDs follow this format:
-
-```
-did:nostr:<64-character-lowercase-public-key>
+```sh
+npm install did-nostr
+# optional, for the DIF driver:
+npm install did-resolver
 ```
 
-Example:
+ESM only. Node ≥ 20 (relay resolution needs a global `WebSocket` — Node ≥ 22 or a browser).
 
-```
-did:nostr:124c0fa99407182ece5a24fad9b7f6674902fc422843d3128d38a0afbee0fdd2
-```
+## Library
 
-## Example DID Document
+```js
+import { resolve, buildDidDocument } from 'did-nostr'
 
-When a Nostr DID is resolved, it produces a DID Document like this:
+// Full strategy: HTTP .well-known (fast) -> relay (enhanced) -> offline (minimal)
+const { didDocument } = await resolve('did:nostr:124c0f…fdd2')
 
-### Minimal DID Document (Offline Resolution)
-
-```json
-{
-  "@context": ["https://w3id.org/did", "https://w3id.org/nostr/context"],
-  "id": "did:nostr:124c0fa99407182ece5a24fad9b7f6674902fc422843d3128d38a0afbee0fdd2",
-  "type": "DIDNostr",
-  "verificationMethod": [
-    {
-      "id": "did:nostr:124c0fa99407182ece5a24fad9b7f6674902fc422843d3128d38a0afbee0fdd2#key1",
-      "type": "Multikey",
-      "controller": "did:nostr:124c0fa99407182ece5a24fad9b7f6674902fc422843d3128d38a0afbee0fdd2",
-      "publicKeyMultibase": "fe70102124c0fa99407182ece5a24fad9b7f6674902fc422843d3128d38a0afbee0fdd2"
-    }
-  ],
-  "authentication": ["#key1"],
-  "assertionMethod": ["#key1"]
-}
+// Pure, offline, no network — minimal document from the key alone:
+const minimal = buildDidDocument('124c0f…fdd2')
 ```
 
-### Complete DID Document (With Profile and Social Graph)
+### DIF did-resolver driver
 
-```json
-{
-  "@context": ["https://w3id.org/did", "https://w3id.org/nostr/context"],
-  "id": "did:nostr:124c0fa99407182ece5a24fad9b7f6674902fc422843d3128d38a0afbee0fdd2",
-  "type": "DIDNostr",
-  "verificationMethod": [
-    {
-      "id": "did:nostr:124c0fa99407182ece5a24fad9b7f6674902fc422843d3128d38a0afbee0fdd2#key1",
-      "type": "Multikey",
-      "controller": "did:nostr:124c0fa99407182ece5a24fad9b7f6674902fc422843d3128d38a0afbee0fdd2",
-      "publicKeyMultibase": "fe70102124c0fa99407182ece5a24fad9b7f6674902fc422843d3128d38a0afbee0fdd2"
-    }
-  ],
-  "authentication": ["#key1"],
-  "assertionMethod": ["#key1"],
-  "service": [
-    {
-      "id": "did:nostr:124c0fa99407182ece5a24fad9b7f6674902fc422843d3128d38a0afbee0fdd2#relay1",
-      "type": "Relay",
-      "serviceEndpoint": "wss://relay.damus.io/"
-    }
-  ],
-  "profile": {
-    "name": "Alice",
-    "about": "Building the decentralized web",
-    "picture": "https://example.com/alice.jpg",
-    "timestamp": 1737906600
-  },
-  "follows": [
-    "did:nostr:32e1827635450ebb3c5a7d12c1f8e7b2b514439ac10a67eef3d9fd9c5c68e245",
-    "did:nostr:46fcbe3065eaf1ae7811465924e48923363ff3f526bd6f73d7c184147700e3a8"
-  ]
-}
+```js
+import { Resolver } from 'did-resolver'
+import { getResolver } from 'did-nostr'
+
+const resolver = new Resolver(getResolver({ gateways: ['https://nostr.social'] }))
+const result = await resolver.resolve('did:nostr:124c0f…fdd2')
+// -> { didResolutionMetadata, didDocument, didDocumentMetadata }
 ```
 
-These documents define:
+## CLI
 
-- **The DID identifier** with mandatory `type: "DIDNostr"` field for linked data compliance
-- **A Multikey verification method** that transforms x-only BIP-340 public keys into Data Integrity compatible format
-- **Authentication and assertion capabilities** using the Multikey verification method
-- **Optional service endpoints** for Nostr relays (URLs at origin level MUST include trailing slash)
-- **Optional profile information** from kind 0 Nostr events with timestamp for freshness
-- **Optional social graph** with follows array derived from kind 3 contact lists
+```sh
+did-nostr <did|pubkey> [options]
 
-## Resolution Methods
+  --offline           minimal document from the key alone (no network)
+  --http              HTTP .well-known only (fast)
+  --relay             relays only (enhanced)
+  --gateway <url>     HTTP gateway to try (repeatable)
+  --relay-url <url>   relay to query (repeatable)
+  --json              print the full DID resolution result
+  -h, --help
+```
 
-The specification supports multiple resolution strategies:
+## Resolution strategy
 
-1. **HTTP Resolution** (fastest) - Check `https://<domain>/.well-known/did/nostr/<pubkey>.json`
-2. **Offline-first Resolution** - Generate minimal DID document from public key alone
-3. **Enhanced Resolution** - Query Nostr relays for additional metadata
+1. **Offline / minimal** — DID document from the public key alone, no network.
+2. **HTTP (`.well-known`)** — `GET <gateway>/.well-known/did/nostr/<pubkey>.json` (fast path).
+3. **Relay / enhanced** — query relays for kind 0 (profile), 3 (follows), 10002 (relays) and build the document locally.
 
-## Key Features
+`resolve()` in `auto` mode tries HTTP first, falls back to relay, then to offline-minimal.
 
-- **Mandatory Type Field**: All DID documents include `type: "DIDNostr"` for linked data processing
-- **Data Integrity Compatibility**: Multikey verification method enables seamless integration with W3C Verifiable Credentials
-- **Social Graph Support**: Include follows from kind 3 contact lists with scalability via service endpoints
-- **Profile Integration**: Optional profile data from kind 0 events with timestamp for cache validation
-- **HTTP Optimization**: Resolvers may check NIP-05 endpoints for `didResolver` field to avoid relay queries
-- **Flexible Key Support**: Handles both 0x02 and 0x03 prefix compressed public keys generated by Nostr applications
-- **Standardized Encoding**: Uses multicodec/multibase encoding for interoperability with modern credential ecosystems
-- **Relay Declaration**: Service fields allow declaring associated Nostr relays with proper URL canonicalization
-- **Simple Creation**: Generate a key pair and encode the public key as a 64-character string
-- **Offline-first**: DID documents can be deterministically generated from the public key without network access
+## Conformance
 
-## Specification Status
-
-This is an unofficial draft specification under development. It is being created within the W3C Nostr Community Group.
-
-## Relationship with Nostr npubs
-
-In the Nostr ecosystem, public keys are often displayed as "npubs" (e.g., `npub1...`), which are Bech32 encoded versions of the raw public keys for human-friendly display. It's important to note:
-
-- Nostr DIDs use the raw 64-character hexadecimal public key, not the npub format
-- npubs are for display purposes only and improve readability in user interfaces
-- For display in user interfaces, applications may choose to show the corresponding npub alongside the DID
-
-Example mapping:
-
-- Raw public key: `124c0fa99407182ece5a24fad9b7f6674902fc422843d3128d38a0afbee0fdd2`
-- DID: `did:nostr:124c0fa99407182ece5a24fad9b7f6674902fc422843d3128d38a0afbee0fdd2`
-- Display npub: `npub1cpxejnc58zpcuyh0pt8gvkzpv34qxceu0sqp7jec2nk9nut7p5zs4zyx4c`
+Key transformation, decoding, the error taxonomy, and minimal document generation are gated against the [did:nostr conformance vectors](https://github.com/nostrcg/did-nostr/blob/gh-pages/test-vectors/test-vectors-generated.json) (`npm test`). This is an independent implementation of the same vectors that [Beacon](https://github.com/JavaScriptSolidServer/beacon) passes.
 
 ## License
 
-MIT License
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## Resources
-
-View the full specification by opening the [index.html](index.html) file in your browser.
+MIT
